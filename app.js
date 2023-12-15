@@ -12,14 +12,9 @@ require("dotenv").config();
 app.use(express.urlencoded({extended:false}));
 app.use(express.json())
 
-// app.use(cors({
-//     origin:["https://poduppilconstructions.netlify.app"],
-//     methods:["GET","POST","PATCH"],
-//     credentials:true
-// }))
 
 app.use(cors({
-    origin: ["https://poduppilconstructions.netlify.app"],
+    origin: ["https://poduppilconstructions.com"],
       methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],

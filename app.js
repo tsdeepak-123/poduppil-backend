@@ -15,7 +15,7 @@ app.use(express.json())
 
 
 app.use(cors({
-    origin: ["poduppilconstructions.com"],
+    origin: [process.env.FrontendLink],
       methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],

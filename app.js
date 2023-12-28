@@ -7,7 +7,7 @@ const userRoute=require('./Routes/user')
 const adminRoute = require('./Routes/Admin')
 
 require('./config/connection')
-require("dotenv").config();
+
 
 
 app.use(express.urlencoded({extended:false}));

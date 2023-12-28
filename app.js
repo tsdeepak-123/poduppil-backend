@@ -2,6 +2,7 @@ const express=require('express')
 const app=express()
 const path=require('path')
 const cors=require('cors')
+require("dotenv").config()
 const userRoute=require('./Routes/user')
 const adminRoute = require('./Routes/Admin')
 
@@ -14,7 +15,7 @@ app.use(express.json())
 
 
 app.use(cors({
-    origin: ["https://poduppilconstructions.com"],
+    origin: [process.env.FrontendLink],
       methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],

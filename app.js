@@ -15,9 +15,10 @@ app.use(express.json())
 
 
 app.use(cors({
-    origin: ["https://poduppilconstructions.com"],
+    origin: "*",
       methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }));
 
 app.use('/',userRoute)

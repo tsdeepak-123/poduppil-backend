@@ -18,7 +18,6 @@ app.use(cors({
     origin: ["https://poduppilconstructions.com"],
       methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
   }));
 
 app.use('/',userRoute)

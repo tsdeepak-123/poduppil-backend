@@ -111,19 +111,26 @@ const handleLabourAdding = async (req, res) => {
 
 const handleLabourEditing = async (req, res) => {
   try {
-    console.log("hiiiiiiiiiiiiiii");
     const id = req.params.id;
-
+        // Check if photo is uploaded
+        if (req.files && req.files.photo) {
+          const photoUpload = await cloudinary.uploader.upload(req.files.photo[0].path);
+          
+          if (!photoUpload.secure_url) {
+            return res.json({
+              success: false, 
+              message: "Failed to upload photo",
+            });
+          }
+    
+          // Add the updated photo URL to req.body
+          req.body.photo = photoUpload.secure_url;
+        }
     if (
       !req.body.name ||
       !req.body.age ||
       !req.body.phone ||
-      !req.body.street ||
-      !req.body.post ||
-      !req.body.town ||
-      !req.body.district ||
-      !req.body.state ||
-      !req.body.pincode ||
+      !req.body.address||
       !req.body.salary ||
       !req.body.adhar ||
       !req.body.date
@@ -135,7 +142,7 @@ const handleLabourEditing = async (req, res) => {
    
     const updatedLabour = await Labour.findByIdAndUpdate(
       id,
-      { $set: req.body },
+      { $set:{... req.body} },
       { new: true }
     );
 
@@ -585,7 +592,7 @@ const labourAttendanceEdit = async (req, res) => {
       attendanceRecords.map((record) => record.save())
     );
 
-    res.status(200).json({ message: "successfull", updatedRecords });
+    res.status(200).json({success:true, message: "successfull", updatedRecords });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }

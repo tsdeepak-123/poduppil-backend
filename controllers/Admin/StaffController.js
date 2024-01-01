@@ -122,12 +122,7 @@ const handleStaffEditing = async (req, res) => {
       !req.body.name ||
       !req.body.age ||
       !req.body.phone ||
-      !req.body.street ||
-      !req.body.post ||
-      !req.body.town ||
-      !req.body.district ||
-      !req.body.state ||
-      !req.body.pincode ||
+      !req.body.address||
       !req.body.salary ||
       !req.body.adhar ||
       !req.body.date
@@ -505,7 +500,7 @@ const stafffAttendanceEdit = async (req, res) => {
       attendanceRecords.map((record) => record.save())
     );
 
-    res.status(200).json({ message: "successfull", updatedRecords });
+    res.status(200).json({success:true, message: "successfull", updatedRecords });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }

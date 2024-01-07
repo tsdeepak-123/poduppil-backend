@@ -93,7 +93,7 @@ const handleSignIn = async (req, res) => {
     if (email && password) {
       const AdminData = await admin.findOne({ email: email });
       if (!AdminData) {
-        res.status(404).json({ success: false, messege: "Invalid email" });
+        res.status(404).json({ success: false, message: "Invalid email" });
       } else {
         const status = await bcrypt.compare(password, AdminData.password);
         if (status) {
@@ -108,18 +108,18 @@ const handleSignIn = async (req, res) => {
 
           res
             .status(200)
-            .json({ adminSignin, success: true, messege: "Authenticated" });
+            .json({ adminSignin, success: true, message: "Authenticated" });
         } else {
           res
             .status(401)
-            .json({ success: false, messege: "Incorrect Password" });
+            .json({ success: false, message: "Incorrect Password" });
         }
       }
     } else {
-      res.status(400).json({ success: false, messege: "Invalid Credentials" });
+      res.status(400).json({ success: false, message: "Invalid Credentials" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.messege });
+    res.status(500).json({ error: error.message });
   }
 };
 

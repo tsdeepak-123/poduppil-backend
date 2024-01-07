@@ -45,33 +45,34 @@ const handleStaffAdding = async (req, res) => {
         });
       }
 
-      if (!req.files || !req.files.proof || !req.files.photo) {
-        return res.json({
-          success: false,
-          message: "Both proof and photo must be uploaded.",
-        });
+      const proofUrls = [];
+      if (req.files && req.files.proof) {
+        for (const proof of req.files.proof) {
+          const proofUpload = await cloudinary.uploader.upload(proof.path);
+          if (!proofUpload.secure_url) {
+            return res.json({
+              success: false,
+              message: "Failed to upload proof.",
+            });
+          }
+          proofUrls.push(proofUpload.secure_url);
+        }
       }
 
-      const proofUrls = [];
-      for (const proof of req.files.proof) {
-        const proofUpload = await cloudinary.uploader.upload(proof.path);
-        if (!proofUpload.secure_url) {
+      let photoUrl;
+      if (req.files && req.files.photo) {
+        const photoUpload = await cloudinary.uploader.upload(
+          req.files.photo[0].path
+        );
+
+        if (!photoUpload.secure_url) {
           return res.json({
             success: false,
-            message: "Failed to upload proof or photo",
+            message: "Failed to upload photo.",
           });
         }
-        proofUrls.push(proofUpload.secure_url);
-      }
-      const photoUpload = await cloudinary.uploader.upload(
-        req.files.photo[0].path
-      );
 
-      if (!photoUpload.secure_url) {
-        return res.json({
-          success: false,
-          message: "Failed to upload proof or photo",
-        });
+        photoUrl = photoUpload.secure_url;
       }
 
       const newStaff = new Staff({
@@ -79,7 +80,7 @@ const handleStaffAdding = async (req, res) => {
         age,
         phone,
         IdProof: proofUrls,
-        photo: photoUpload.secure_url,
+        photo: photoUrl,
         address: {
           street,
           post,
@@ -97,7 +98,7 @@ const handleStaffAdding = async (req, res) => {
 
       return res
         .status(200)
-        .json({ success: true, message: "staff added successfully." });
+        .json({ success: true, message: "Staff added successfully." });
     } else {
       return res.json({
         success: false,
@@ -110,13 +111,58 @@ const handleStaffAdding = async (req, res) => {
 };
 
 
-
 //-----------------------------------edit staff-----------------------------
 
 const handleStaffEditing = async (req, res) => {
   try {
     console.log("hiiiiiiiiiiiiiii");
     const id = req.params.id;
+
+      // Update photo if it exists in the request
+      if (req.files.photo) {
+        const photoUpload = await cloudinary.uploader.upload(req.files.photo[0].path);
+        
+        if (!photoUpload.secure_url) {
+          return res.json({
+            success: false, 
+            message: "Failed to upload photo",
+          });
+        }
+  
+        // Add the updated photo URL to req.body
+        req.body.photo = photoUpload.secure_url;
+      }else{
+            const existingStaff = await Staff.findById(id);
+      if (existingStaff) {
+        req.body.photo = existingStaff.photo;
+      }
+      }
+  
+      // Update proof if it exists in the request
+      if (req.files && req.files.proof) {
+        const proofUrls = [];
+  
+        for (const proof of req.files.proof) {
+          const proofUpload = await cloudinary.uploader.upload(proof.path);
+  
+          if (!proofUpload.secure_url) {
+            return res.json({
+              success: false,
+              message: "Failed to upload proof",
+            });
+          }
+  
+          proofUrls.push(proofUpload.secure_url);
+        }
+  
+        // Update the IdProof field in req.body with the new proof URLs
+        req.body.IdProof = proofUrls;
+      }
+
+       
+    req.body.address=JSON.parse(req.body.address)
+
+
 
     if (
       !req.body.name ||
@@ -132,11 +178,14 @@ const handleStaffEditing = async (req, res) => {
         .json({ success: false, messege: "All fields must be field " });
     }
    
+
     const updatedStaff = await Staff.findByIdAndUpdate(
       id,
       { $set: req.body },
       { new: true }
     );
+
+    console.log("Updated staff:", updatedStaff);
 
     if (!updatedStaff) {
       return res.status(404).json({ error: "Staff not found" });
@@ -144,11 +193,13 @@ const handleStaffEditing = async (req, res) => {
 
     res
       .status(200)
-      .json({ success: true, messege: "Staff Updated successfully" });
+      .json({ success: true, message: "Staff Updated successfully" });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 
 // This function handles Staff Details pic from data base, taking in a request (req) and a response (res) as parameters.
@@ -610,6 +661,31 @@ const handleStaffSalaryControll = async (req, res) => {
   }
 };
 
+
+
+
+const handleDeleteStaff = async (req, res) => {
+  try { 
+    const id = req.query.id;
+    const deletedStaff = await Staff.findByIdAndDelete(id);
+
+    if (!deletedStaff) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Staff not found" });
+    }
+
+    return res.json({
+      success: true,
+      message: "Staff deleted successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
+
 module.exports = {
   handleStaffAdding,
   handleStaffDetails,
@@ -624,5 +700,6 @@ module.exports = {
   StaffAttendanceById,
   handleStaffSalaryControll,
   handleStaffSalaryById,
-  handleStaffEditing
+  handleStaffEditing,
+  handleDeleteStaff
 };

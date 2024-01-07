@@ -258,13 +258,33 @@ const handleContractByProjectId=async(req,res)=>{
     console.log(projectname);
 
     const allContractsById=await contract.find({projectname:projectname})
-    console.log(allContractsById,"WORKKKKKKKKKKKK");
     res.json({success:true,message:"Contract with project name finded suuccessfully",allContractsById})
     
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
+
+const handleDeleteContract = async (req, res) => {
+  try { 
+    const id = req.query.id;
+    const deletedContract = await contract.findByIdAndDelete(id);
+
+    if (!deletedContract) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Contract not found" });
+    }
+
+    return res.json({
+      success: true,
+      message: "Contract deleted successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
 
 module.exports = {
   handleAddContract,
@@ -275,4 +295,5 @@ module.exports = {
   handleWorkerCount,
   handleContractByProjectId,
   handleLabourCountById,
+  handleDeleteContract 
 };

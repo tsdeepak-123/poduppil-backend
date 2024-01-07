@@ -6,8 +6,45 @@ const cloudinary = require('../../Middleware/Cloudinary')
 // This function handles bill Adding to database, taking in a request (req) and a response (res) as parameters.
 
 const handleBillAdding = async (req, res) => {
-    try {
-      const {
+  try {
+    const {
+      name,
+      date,
+      amount,
+      status,
+      paid,
+      pending,
+      paidby,
+      payment,
+    } = req.body;
+
+    if (
+      name &&
+      date &&
+      amount &&
+      status &&
+      paid &&
+      pending &&
+      paidby &&
+      payment
+    ) {
+      let photoUrl;
+      if (req.files && req.files.photo) {
+        const photoUpload = await cloudinary.uploader.upload(
+          req.files.photo[0].path
+        );
+
+        if (!photoUpload.secure_url) {
+          return res.json({
+            success: false,
+            message: "Failed to upload photo",
+          });
+        }
+
+        photoUrl = photoUpload.secure_url;
+      }
+
+      const newBill = new Bill({
         name,
         date,
         amount,
@@ -16,58 +53,24 @@ const handleBillAdding = async (req, res) => {
         pending,
         paidby,
         payment,
-      } = req.body;
-  
-      if (
-        name &&
-        date&&
-        amount&&
-        status&&
-        paid&&
-        pending&&
-        paidby&&
-        payment
-      ) {
-        
-        if (!req.files|| !req.files.photo) {
-          return res.json({
-            success: false,
-            message: "photo must be uploaded.",
-          });
-        }
-        const photoUpload = await cloudinary.uploader.upload(req.files.photo[0].path);
-        if (!photoUpload.secure_url) {
-          return res.json({
-            success: false,
-            message: "Failed to upload photo",
-          });
-        }
-  
-        const newBill = new Bill({
-            name,
-            date,
-            amount,
-            status,
-            paid,
-            pending,
-            paidby,
-            payment,
-            photo: photoUpload.secure_url
-       
-        });
-  
-        await newBill.save()
-        return res.status(200).json({ success: true, message: "Bill added successfully." });
-      } else {
-        return res.json({
-          success: false,
-          message: "All fields must be filled.",
-        });
-      }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+        photo: photoUrl,
+      });
+
+      await newBill.save();
+      return res
+        .status(200)
+        .json({ success: true, message: "Bill added successfully." });
+    } else {
+      return res.json({
+        success: false,
+        message: "All fields must be filled.",
+      });
     }
-  };
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 
 
   // This function handles Labour Details pic from data base, taking in a request (req) and a response (res) as parameters.
@@ -108,4 +111,81 @@ const handleCompletedBills=async(req,res)=>{
 
 
 
-  module.exports={handleBillAdding,handleBillDetails,handleBillSingleView,handleCompletedBills}
+const handleDeleteBill = async (req, res) => {
+  try { 
+    const id = req.query.id;
+    const deletedBill = await Bill.findByIdAndDelete(id);
+
+    if (!deletedBill) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Bill not found" });
+    }
+
+    return res.json({
+      success: true,
+      message: "Bill deleted successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
+const handleBillEditing = async (req, res) => {
+  try {
+   
+    const id = req.params.id;
+    console.log(req.files && req.files.photo);
+
+          // Update photo if it exists in the request
+          if (req.files && req.files.photo) {
+            const photoUpload = await cloudinary.uploader.upload(req.files.photo[0].path);
+            
+            if (!photoUpload.secure_url) {
+              return res.json({
+                success: false, 
+                message: "Failed to upload photo",
+              });
+            }
+      
+            // Add the updated photo URL to req.body
+            req.body.photo = photoUpload.secure_url;
+          }
+
+    if (
+      !req.body.name ||
+      !req.body.date ||
+      !req.body.amount ||
+      !req.body.status ||
+      !req.body.paid||
+      !req.body.pending ||
+      !req.body.paidby ||
+      !req.body.payment
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields must be filled " });
+    }
+
+    const updatedBill = await Bill.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true }
+    );
+
+    if (!updatedBill) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Bill Updated successfully" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+  module.exports={handleBillAdding,handleBillDetails,handleBillSingleView,handleCompletedBills,handleDeleteBill,handleBillEditing}

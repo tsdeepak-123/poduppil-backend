@@ -264,6 +264,28 @@ const handleRecievedCashByProject = async (req, res) => {
   }
 };
 
+
+const handleDeleteProject = async (req, res) => {
+  try { 
+    const id = req.query.id;
+    const deletedProject = await Project.findByIdAndDelete(id);
+
+    if (!deletedProject) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+
+    return res.json({
+      success: true,
+      message: "Project deleted successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
 module.exports = {
   handleProjectAdding,
   handleProjectEditing,
@@ -274,4 +296,5 @@ module.exports = {
   handlepayment,
   handleRecievedCash,
   handleRecievedCashByProject,
+  handleDeleteProject 
 };

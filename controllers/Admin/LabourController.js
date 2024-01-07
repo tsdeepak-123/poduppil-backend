@@ -44,33 +44,34 @@ const handleLabourAdding = async (req, res) => {
         });
       }
 
-      if (!req.files || !req.files.proof || !req.files.photo) {
-        return res.json({
-          success: false,
-          message: "Both proof and photo must be uploaded.",
-        });
-      }
       const proofUrls = [];
-      for (const proof of req.files.proof) {
-        const proofUpload = await cloudinary.uploader.upload(proof.path);
-        if (!proofUpload.secure_url) {
+      if (req.files && req.files.proof) {
+        for (const proof of req.files.proof) {
+          const proofUpload = await cloudinary.uploader.upload(proof.path);
+          if (!proofUpload.secure_url) {
+            return res.json({
+              success: false,
+              message: "Failed to upload proof.",
+            });
+          }
+          proofUrls.push(proofUpload.secure_url);
+        }
+      }
+
+      let photoUrl;
+      if (req.files && req.files.photo) {
+        const photoUpload = await cloudinary.uploader.upload(
+          req.files.photo[0].path
+        );
+
+        if (!photoUpload.secure_url) {
           return res.json({
             success: false,
-            message: "Failed to upload proof or photo",
+            message: "Failed to upload photo.",
           });
         }
-        proofUrls.push(proofUpload.secure_url);
-      }
 
-      const photoUpload = await cloudinary.uploader.upload(
-        req.files.photo[0].path
-      );
-
-      if (!photoUpload.secure_url) {
-        return res.json({
-          success: false,
-          message: "Failed to upload proof or photo",
-        });
+        photoUrl = photoUpload.secure_url;
       }
 
       const newLabour = new Labour({
@@ -78,7 +79,7 @@ const handleLabourAdding = async (req, res) => {
         age,
         phone,
         IdProof: proofUrls,
-        photo: photoUpload.secure_url,
+        photo: photoUrl,
         address: {
           street,
           post,
@@ -109,23 +110,55 @@ const handleLabourAdding = async (req, res) => {
 };
 
 
+
 const handleLabourEditing = async (req, res) => {
   try {
+
     const id = req.params.id;
-        // Check if photo is uploaded
-        if (req.files && req.files.photo) {
-          const photoUpload = await cloudinary.uploader.upload(req.files.photo[0].path);
-          
-          if (!photoUpload.secure_url) {
+
+      // Update photo if it exists in the request
+      if (req.files.photo) {
+        const photoUpload = await cloudinary.uploader.upload(req.files.photo[0].path);
+        
+        if (!photoUpload.secure_url) {
+          return res.json({
+            success: false, 
+            message: "Failed to upload photo",
+          });
+        }
+  
+        // Add the updated photo URL to req.body
+        req.body.photo = photoUpload.secure_url;
+      }else{
+            const existingLabour = await Labour.findById(id);
+      if (existingLabour) {
+        req.body.photo = existingLabour.photo;
+      }
+      }
+  
+      // Update proof if it exists in the request
+      if (req.files && req.files.proof) {
+        const proofUrls = [];
+  
+        for (const proof of req.files.proof) {
+          const proofUpload = await cloudinary.uploader.upload(proof.path);
+  
+          if (!proofUpload.secure_url) {
             return res.json({
-              success: false, 
-              message: "Failed to upload photo",
+              success: false,
+              message: "Failed to upload proof",
             });
           }
-    
-          // Add the updated photo URL to req.body
-          req.body.photo = photoUpload.secure_url;
+  
+          proofUrls.push(proofUpload.secure_url);
         }
+  
+        // Update the IdProof field in req.body with the new proof URLs
+        req.body.IdProof = proofUrls;
+      }
+
+       
+    req.body.address=JSON.parse(req.body.address)
     if (
       !req.body.name ||
       !req.body.age ||
@@ -192,9 +225,9 @@ const handleLabourById = async (req, res) => {
 
 const handleAttendance = async (req, res) => {
   try {
-    const { selectedValues } = req.body;
+    const { selectedValues} = req.body;
     const currentDate = moment();
-    const formattedDate = currentDate.format("YYYY-MM-DD");
+    const formattedDate = currentDate.format("YYYY-MM-DD")
 
     let attendanceDocument = await Attendance.findOne({ date: formattedDate });
 
@@ -619,6 +652,28 @@ const handleSalaryControll = async (req, res) => {
   }
 };
 
+
+
+const handleDeleteLabour = async (req, res) => {
+  try { 
+    const id = req.query.id;
+    const deletedLabour = await Labour.findByIdAndDelete(id);
+
+    if (!deletedLabour) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Labour not found" });
+    }
+
+    return res.json({
+      success: true,
+      message: "Labour deleted successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   handleLabourAdding,
   handleLabourEditing,
@@ -635,4 +690,5 @@ module.exports = {
   labourAttendanceEdit,
   handleSalaryControll,
   handleLabourSalaryById,
+  handleDeleteLabour 
 };

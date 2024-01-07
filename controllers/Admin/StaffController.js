@@ -115,7 +115,7 @@ const handleStaffAdding = async (req, res) => {
 
 const handleStaffEditing = async (req, res) => {
   try {
-    console.log("hiiiiiiiiiiiiiii");
+    
     const id = req.params.id;
 
       // Update photo if it exists in the request
@@ -185,7 +185,6 @@ const handleStaffEditing = async (req, res) => {
       { new: true }
     );
 
-    console.log("Updated staff:", updatedStaff);
 
     if (!updatedStaff) {
       return res.status(404).json({ error: "Staff not found" });
@@ -195,7 +194,6 @@ const handleStaffEditing = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Staff Updated successfully" });
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({ error: "Server error" });
   }
 };

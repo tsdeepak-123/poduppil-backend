@@ -605,39 +605,30 @@ const handleLabourSalaryById = async (req, res) => {
 
 const labourAttendanceEdit = async (req, res) => {
   try {
-    const { labourId, status } = req.body;
+    const { labourId, status, date } = req.body;
 
-    const currentDate = new Date();
-    const startOfDay = new Date(currentDate);
-
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(currentDate);
-
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const attendanceRecords = await Attendance.find({
-      date: { $gte: startOfDay, $lt: endOfDay },
+    const attendanceRecord = await Attendance.findOne({
+      date: date,
     });
 
-    attendanceRecords.forEach(async (record) => {
-      const matchingRecord = record.records.find(
+    if (attendanceRecord) {
+      const matchingRecord = attendanceRecord.records.find(
         (r) => r.laborerId == labourId
       );
 
       if (matchingRecord) {
         matchingRecord.status = status;
       } else {
-        record.records.push({ laborerId: labourId, status });
+        attendanceRecord.records.push({ laborerId: labourId, status });
       }
-    });
 
-    const updatedRecords = await Promise.all(
-      attendanceRecords.map((record) => record.save())
-    );
-
-    res.status(200).json({success:true, message: "successfull", updatedRecords });
+      await attendanceRecord.save();
+      res.status(200).json({ success: true, message: "Successful", updatedRecord: attendanceRecord });
+    } else {
+      res.status(404).json({ success: false, message: "Attendance record not found for the specified date" });
+    }
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

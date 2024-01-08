@@ -33,14 +33,13 @@ const {
   handleAttendanceListofStaff,
   handleStaffAdvance,
   salarycalculationforStaff,
-  stafffAttendanceEdit,
   handleAllStaffHIstory,
   StaffAttendanceById,
   handleStaffSalaryControll,
   handleStaffSalaryById,
   handleStaffEditing,
   handleDeleteStaff,
-  // handleStaffPhotoEdit
+  staffAttendanceEdit,
 } = require("../controllers/Admin/StaffController");
 const {
   handleProjectAdding,
@@ -134,7 +133,7 @@ adminRoute.get("/laboursalaryhistory", AdminAuth, handleLabourHIstory);
 adminRoute.get("/alllaboursalaryhistory", AdminAuth, handleAllLabourHIstory);
 adminRoute.post("/labourAttendanceEdit", AdminAuth, labourAttendanceEdit);
 adminRoute.post("/EditContract", AdminAuth, handleEditContract);
-adminRoute.post("/staffAttendanceEdit", AdminAuth, stafffAttendanceEdit);
+adminRoute.post("/staffAttendanceEdit", AdminAuth, staffAttendanceEdit);
 adminRoute.get("/allStaffsalaryhistory", AdminAuth, handleAllStaffHIstory);
 adminRoute.post("/addprojectphotos",AdminAuth,upload.fields([{ name: "photos", maxCount: 2 }]),handlePhotoAdding);
 adminRoute.post("/addmaterial", AdminAuth, handleMaterialAdding);

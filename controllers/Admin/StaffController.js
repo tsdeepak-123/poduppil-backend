@@ -530,42 +530,36 @@ const handleStaffAdvance = async (req, res) => {
 
 //..................... staff attendance edit ......................................................
 
-const stafffAttendanceEdit = async (req, res) => {
+const staffAttendanceEdit = async (req, res) => {
   try {
-    const { staffId, status } = req.body;
+    const { staffId, status, date } = req.body;
 
-    const currentDate = new Date();
-    const startOfDay = new Date(currentDate);
-
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(currentDate);
-
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const attendanceRecords = await Staffattendance.find({
-      date: { $gte: startOfDay, $lt: endOfDay },
+    const attendanceRecord = await Staffattendance.findOne({
+      date: date,
     });
 
-    attendanceRecords.forEach(async (record) => {
-      const matchingRecord = record.records.find((r) => r.StaffId == staffId);
+    if (attendanceRecord) {
+      const matchingRecord = attendanceRecord.records.find(
+        (r) => r.StaffId == staffId
+      );
 
       if (matchingRecord) {
         matchingRecord.status = status;
       } else {
-        record.records.push({ StaffId: staffId, status });
+        attendanceRecord.records.push({ staffId: staffId, status });
       }
-    });
 
-    const updatedRecords = await Promise.all(
-      attendanceRecords.map((record) => record.save())
-    );
-
-    res.status(200).json({success:true, message: "successfull", updatedRecords });
+      await attendanceRecord.save();
+      res.status(200).json({ success: true, message: "Successful", updatedRecord: attendanceRecord });
+    } else {
+      res.status(404).json({ success: false, message: "Attendance record not found for the specified date" });
+    }
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 //...........................  salary history of all Staff ...............................
 
@@ -705,7 +699,7 @@ module.exports = {
   salarycalculationforStaff,
   handleAttendanceListofStaff,
   handleStaffAdvance,
-  stafffAttendanceEdit,
+  staffAttendanceEdit ,
   handleAllStaffHIstory,
   StaffAttendanceById,
   handleStaffSalaryControll,

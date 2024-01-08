@@ -222,17 +222,27 @@ const handleLabourById = async (req, res) => {
 };
 
 //............................................. labour attendance adding...........................................................
-
 const handleAttendance = async (req, res) => {
   try {
-    const { selectedValues} = req.body;
-    const currentDate = moment();
-    const formattedDate = currentDate.format("YYYY-MM-DD")
-
-    let attendanceDocument = await Attendance.findOne({ date: formattedDate });
+    const { selectedValues, date } = req.body;
+    let attendanceDocument = await Attendance.findOne({ date: date });
 
     if (!attendanceDocument) {
-      attendanceDocument = new Attendance({ date: formattedDate, records: [] });
+      attendanceDocument = new Attendance({ date: date, records: [] });
+    }
+
+    if (!attendanceDocument) {
+      res.status(500).json({ success: false, message: "Server error" });
+      return; 
+    }
+
+    // Check if attendance for the date has already been recorded
+    if (attendanceDocument.records.length > 0) {
+      res.json({
+        success: false,
+        message: "Attendance for the selected date has already been recorded.",
+      });
+      return;  // Stop execution here to avoid sending multiple responses
     }
 
     for (const laborerId in selectedValues) {
@@ -249,11 +259,12 @@ const handleAttendance = async (req, res) => {
     }
 
     await attendanceDocument.save();
-    res.status(200).json({ message: "Attendance updated successfully" });
+    return res.status(200).json({ success: true, message: "Attendance updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 //..........................attendance list ............................................................
 

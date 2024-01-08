@@ -231,20 +231,32 @@ const handleStaffById = async (req, res) => {
 
 const handleAttendanceofStaff = async (req, res) => {
   try {
-    const { selectedValues } = req.body;
-
-    const currentDate = moment();
-    const formattedDate = currentDate.format("YYYY-MM-DD");
+    const { selectedValues, date } = req.body;
 
     let attendanceDocument = await Staffattendance.findOne({
-      date: formattedDate,
+      date: date,
     });
 
     if (!attendanceDocument) {
       attendanceDocument = new Staffattendance({
-        date: formattedDate,
+        date: date,
         records: [],
       });
+    }
+
+    // Check if attendanceDocument exists before sending a response
+    if (!attendanceDocument) {
+      res.status(500).json({ success: false, message: "Server error" });
+      return; 
+    }
+
+    // Check if attendance for the date has already been recorded
+    if (attendanceDocument.records.length > 0) {
+      res.json({
+        success: false,
+        message: "Attendance for the selected date has already been recorded.",
+      });
+      return;  // Stop execution here to avoid sending multiple responses
     }
 
     for (const StaffId in selectedValues) {
@@ -263,9 +275,9 @@ const handleAttendanceofStaff = async (req, res) => {
 
     await attendanceDocument.save();
 
-    res.status(200).json({ message: "Attendance updated successfully" });
+    res.status(200).json({ success: true, message: "Attendance updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

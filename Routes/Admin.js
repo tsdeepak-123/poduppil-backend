@@ -84,6 +84,8 @@ const {
   handlePurchaseById,
   handlePurchaseByDate,
   handlePurchaseByCareOf,
+  handleCareOfAdding,
+  handleCareOfList,
 } = require("../controllers/Admin/MaterialController");
 
 //The routes for admin authentication
@@ -169,5 +171,7 @@ adminRoute.patch("/deletebill",handleDeleteBill)
 adminRoute.patch("/deletestaff",handleDeleteStaff)
 adminRoute.patch("/deletelabour",handleDeleteLabour)
 adminRoute.patch("/deleteproject",handleDeleteProject)
+adminRoute.post("/addcareof",handleCareOfAdding)
+adminRoute.get("/getcareof",handleCareOfList)
 
 module.exports = adminRoute;

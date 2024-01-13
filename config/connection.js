@@ -9,4 +9,4 @@ mongoose.connect(process.env.MONGO_DB_CONNECTION_STRING).then(()=>{
 })
 .catch((error)=>{
     console.log("DB not connected",error);
-})
+}) 

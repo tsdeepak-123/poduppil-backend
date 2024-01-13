@@ -1,6 +1,8 @@
+const Careof = require('../../models/Admin/CareOfModel')
 const Material = require('../../models/Admin/MaterialModel')
 const Project = require('../../models/Admin/ProjectModel')
 const Purchase = require('../../models/Admin/PurchaseModel')
+
 
 
 
@@ -164,7 +166,7 @@ const handlePurchaseByCareOf = async (req, res) => {
         $unwind: '$Material'
       },
       {
-        $sort: { 'date': 1 } // Sort by date before grouping
+        $sort: { 'date': 1 } 
       },
 
       {
@@ -195,7 +197,39 @@ const handlePurchaseByCareOf = async (req, res) => {
 
  
 
+//handle CareOf adding here
+const handleCareOfAdding = async (req, res) => {
+
+  try {
+    const { careof} = req.body
+
+    const newCareOf = new Careof({
+      name: careof,
+
+    })
+
+    await newCareOf.save()
+    res.json({ success: true, messege: "CareOf added successfully" })
+  } catch (error) {
+
+    res.status(500).json({ messege: "internal server error" })
+  }
+}
+
+
+//get full careof list
+
+const handleCareOfList = async (req, res) => {
+  try {
+    const allCareOfs = await Careof.find();
+    // careof found
+    res.status(200).json({ success: true, message: "careofs found", allCareOfs });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 
 
-module.exports = { handleMaterialAdding, handleMaterialList, handleMaterialPurchase, handleMaterialTotal, handlePurchaseById, handlePurchaseByDate,handlePurchaseByCareOf }
+
+module.exports = { handleMaterialAdding, handleMaterialList, handleMaterialPurchase, handleMaterialTotal, handlePurchaseById, handlePurchaseByDate,handlePurchaseByCareOf,handleCareOfAdding,handleCareOfList }

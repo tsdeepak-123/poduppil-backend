@@ -265,6 +265,33 @@ const handleRecievedCashByProject = async (req, res) => {
 };
 
 
+//delete received cash 
+const handleDeleteReceivedCash = async (req, res) => {
+  try {
+    const projectId = req.query.projectId;
+    const receivedCashId = req.query.id;
+
+    if (!projectId || !receivedCashId) {
+      return res.status(400).json({ success: false, error: 'Project ID and received cash ID are required.' });
+    }
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found.' });
+    }
+    const receivedCashIndex = project.projectPayment.findIndex(cash => cash._id.toString() === receivedCashId);
+    if (receivedCashIndex === -1) {
+      return res.status(404).json({ success: false, error: 'Received cash not found within the project.' });
+    }
+    project.projectPayment.splice(receivedCashIndex, 1);
+    await project.save();
+    return res.status(200).json({ success: true, message: 'Received cash deleted successfully.' });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
+
 const handleDeleteProject = async (req, res) => {
   try { 
     const id = req.query.id;
@@ -296,5 +323,6 @@ module.exports = {
   handlepayment,
   handleRecievedCash,
   handleRecievedCashByProject,
-  handleDeleteProject 
+  handleDeleteProject ,
+  handleDeleteReceivedCash
 };

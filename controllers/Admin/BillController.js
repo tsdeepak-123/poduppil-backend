@@ -44,6 +44,7 @@ const handleBillAdding = async (req, res) => {
         photoUrl = photoUpload.secure_url;
       }
 
+      const isPaid = pending === 0 ? true : false;
       const newBill = new Bill({
         name,
         date,
@@ -54,6 +55,7 @@ const handleBillAdding = async (req, res) => {
         paidby,
         payment,
         photo: photoUrl,
+        isPaid: isPaid,
       });
 
       await newBill.save();

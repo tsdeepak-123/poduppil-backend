@@ -51,7 +51,8 @@ const {
   handlepayment,
   handleRecievedCash,
   handleRecievedCashByProject,
-  handleDeleteProject
+  handleDeleteProject,
+  handleDeleteReceivedCash
 } = require("../controllers/Admin/ProjectController");
 const {
   handleAddContract,
@@ -86,6 +87,8 @@ const {
   handlePurchaseByCareOf,
   handleCareOfAdding,
   handleCareOfList,
+  handleDeletePurchaseBill,
+  handleDeleteCareOf,
 } = require("../controllers/Admin/MaterialController");
 
 //The routes for admin authentication
@@ -173,5 +176,8 @@ adminRoute.patch("/deletelabour",handleDeleteLabour)
 adminRoute.patch("/deleteproject",handleDeleteProject)
 adminRoute.post("/addcareof",handleCareOfAdding)
 adminRoute.get("/getcareof",handleCareOfList)
+adminRoute.patch("/deletepurchasebill",handleDeletePurchaseBill)
+adminRoute.patch("/deletecareof",handleDeleteCareOf)
+adminRoute.patch("/deletereceivedcash",handleDeleteReceivedCash)
 
 module.exports = adminRoute;

@@ -494,10 +494,21 @@ const salarycalculation = async (req, res) => {
 
 const labourAttendanceById = async (req, res) => {
   try {
+    console.log(req.query.year);
     const labourId = req.query.labourId;
+    const month = req.query.month;
+    const year = req.query.year; 
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, parseInt(month) + 1, 0);
+
     const attendanceRecords = await Attendance.find({
       "records.laborerId": labourId,
+      date: {
+        $gte: firstDayOfMonth,
+        $lte: lastDayOfMonth
+      }
     });
+    
     const laborData = {};
     attendanceRecords.forEach((record) => {
       record.records.forEach((attendanceRecord) => {
@@ -508,11 +519,14 @@ const labourAttendanceById = async (req, res) => {
         }
       });
     });
+    
     res.status(200).json({ laborData });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
 
 // ...............................giving advance to labour --------------------------------------------
 

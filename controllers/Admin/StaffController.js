@@ -204,7 +204,7 @@ const handleStaffEditing = async (req, res) => {
 
 const handleStaffDetails = async (req, res) => {
   try {
-    const allStaffData = await Staff.find();
+    const allStaffData = await Staff.find().sort({name:1});;
 
     res.json({ allStaffData });
   } catch (error) {
@@ -624,10 +624,21 @@ const handleStaffSalaryById = async (req, res) => {
 
 const StaffAttendanceById = async (req, res) => {
   try {
+    console.log(req.query.year);
     const staffId = req.query.staffId;
+    const month = req.query.month;
+    const year = req.query.year; 
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, parseInt(month) + 1, 0);
+
     const attendanceRecords = await Staffattendance.find({
       "records.StaffId": staffId,
+      date: {
+        $gte: firstDayOfMonth,
+        $lte: lastDayOfMonth
+      }
     });
+    
     const staffData = {};
     attendanceRecords.forEach((record) => {
       record.records.forEach((attendanceRecord) => {
@@ -638,6 +649,7 @@ const StaffAttendanceById = async (req, res) => {
         }
       });
     });
+    
     res.status(200).json({ staffData });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });

@@ -89,6 +89,9 @@ const {
   handleCareOfList,
   handleDeletePurchaseBill,
   handleDeleteCareOf,
+  handleCareOfPayment,
+  handleGetPayments,
+  handleCareOfBalance,
 } = require("../controllers/Admin/MaterialController");
 
 //The routes for admin authentication
@@ -169,15 +172,18 @@ adminRoute.get("/getlabourcountbyid",AdminAuth,handleLabourCountById);
 adminRoute.get("/getcontractsbyid",AdminAuth,handleContractByProjectId);
 adminRoute.get("/purchasebycareof",AdminAuth,handlePurchaseByCareOf);
 // adminRoute.post("/editphoto",handleStaffPhotoEdit);
-adminRoute.patch("/deletecontract",handleDeleteContract)
-adminRoute.patch("/deletebill",handleDeleteBill)
-adminRoute.patch("/deletestaff",handleDeleteStaff)
-adminRoute.patch("/deletelabour",handleDeleteLabour)
-adminRoute.patch("/deleteproject",handleDeleteProject)
-adminRoute.post("/addcareof",handleCareOfAdding)
-adminRoute.get("/getcareof",handleCareOfList)
-adminRoute.patch("/deletepurchasebill",handleDeletePurchaseBill)
-adminRoute.patch("/deletecareof",handleDeleteCareOf)
-adminRoute.patch("/deletereceivedcash",handleDeleteReceivedCash)
+adminRoute.patch("/deletecontract",AdminAuth,handleDeleteContract)
+adminRoute.patch("/deletebill",AdminAuth,handleDeleteBill)
+adminRoute.patch("/deletestaff",AdminAuth,handleDeleteStaff)
+adminRoute.patch("/deletelabour",AdminAuth,handleDeleteLabour)
+adminRoute.patch("/deleteproject",AdminAuth,handleDeleteProject)
+adminRoute.post("/addcareof",AdminAuth,handleCareOfAdding)
+adminRoute.get("/getcareof",AdminAuth,handleCareOfList)
+adminRoute.patch("/deletepurchasebill",AdminAuth,handleDeletePurchaseBill)
+adminRoute.patch("/deletecareof",AdminAuth,handleDeleteCareOf)
+adminRoute.patch("/deletereceivedcash",AdminAuth,handleDeleteReceivedCash)
+adminRoute.post("/careofpayment",AdminAuth,handleCareOfPayment)
+adminRoute.get("/paymentsbycareof",AdminAuth,handleGetPayments)
+adminRoute.get("/careofbalance",AdminAuth,handleCareOfBalance)
 
 module.exports = adminRoute;

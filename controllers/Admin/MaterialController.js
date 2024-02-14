@@ -72,7 +72,7 @@ const handleMaterialPurchase = async (req, res) => {
 const handlePurchaseById = async (req, res) => {
   try {
     const projectid = req.query.projectid;
-    const PurchaseData = await Purchase.find({ project: projectid });
+    const PurchaseData = await Purchase.find({ project: projectid }).sort({ date: 1 });
     if (!PurchaseData || PurchaseData.length === 0) {
       return res.json({ success: false, message: "No data found" });
     }
@@ -219,7 +219,7 @@ const handleCareOfList = async (req, res) => {
 //delete care of
 
 const handleDeleteCareOf = async (req, res) => {
-  try { 
+  try {
     const id = req.query.id;
     const deletedCareOf = await Careof.findByIdAndDelete(id);
 
@@ -245,11 +245,15 @@ const handleDeletePurchaseBill = async (req, res) => {
     console.log(req.query.id);
     const purchaseId = req.query.id;
     if (!purchaseId) {
-      return res.status(400).json({ success: false, message: "Purchase ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Purchase ID is required" });
     }
     const deletedPurchase = await Purchase.findByIdAndDelete(purchaseId);
     if (!deletedPurchase) {
-      return res.status(404).json({ success: false, message: "Purchase bill not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Purchase bill not found" });
     }
     res.json({ success: true, message: "Purchase bill deleted successfully" });
   } catch (error) {
@@ -257,6 +261,116 @@ const handleDeletePurchaseBill = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+//payment to supplier
+
+const handleCareOfPayment = async (req, res) => {
+  try {
+    const { date, Paidby, Payment, Amount } = req.body;
+    const careofId = req.query.careofId;
+    console.log(careofId);
+    if (!careofId) {
+      return res.status(400).json({ message: "Care of name is required" });
+    }
+    const careOf = await Careof.findById({ _id: careofId });
+    if (!careOf) {
+      return res.status(404).json({ message: "Care of not found" });
+    }
+    const payment = {
+      date,
+      amount: Amount,
+      paymentType: Payment,
+      paidBy: Paidby,
+    };
+    careOf.payments.push(payment);
+    await careOf.save();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Payment added to care of successfully",
+        careOf,
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+//get careof payments
+
+const handleGetPayments=async(req,res)=>{
+  try {
+ 
+    const careOfId = req.query.id;
+    if (!careOfId) {
+      return res.status(400).json({ message: "Care of ID is required" });
+    }
+    const careOf = await Careof.findById(careOfId);
+    if (!careOf) {
+      return res.status(404).json({ message: "Care of not found" });
+    }
+    res.status(200).json({ success: true, payments: careOf.payments });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+
+//handle careof payment deatils total amount,paid pending
+
+const handleCareOfBalance = async (req, res) => {
+  try {
+    const allCareOfs = await Careof.find();
+    
+    const careOfsWithBalance = await Promise.all(allCareOfs.map(async (careOf) => {
+      const totalPayments = careOf.payments.reduce((acc, payment) => {
+        return acc + payment.amount;
+      }, 0);
+    
+      const totalAmountPurchased = await Purchase.aggregate([
+        {
+          $unwind: "$Material",
+        },
+        {
+          $group: {
+            _id: "$Material.careof",
+            TotalAmount: { $sum: "$Material.total" },
+          }
+        }
+      ]);
+      const paid = totalPayments;
+      let totalAmountForCareOf = 0;
+
+for (const amount of totalAmountPurchased) {
+    if (amount._id === careOf.name) {
+        totalAmountForCareOf = amount.TotalAmount;
+        break;
+    }
+}
+      return {
+        _id: careOf._id,
+        name: careOf.name,
+        totalAmountPurchased: totalAmountForCareOf,
+        paid
+      };
+    }));
+    
+    
+
+    res.status(200).json({ success: true, message: "Careofs found", allCareOfs: careOfsWithBalance });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+
 
 module.exports = {
   handleMaterialAdding,
@@ -269,5 +383,8 @@ module.exports = {
   handleCareOfAdding,
   handleCareOfList,
   handleDeletePurchaseBill,
-  handleDeleteCareOf
+  handleDeleteCareOf,
+  handleCareOfPayment,
+  handleGetPayments,
+  handleCareOfBalance
 };

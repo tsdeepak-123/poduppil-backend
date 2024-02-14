@@ -101,7 +101,7 @@ const handleProjectEditing = async (req, res) => {
 
 const ProjectList = async (req, res) => {
   try {
-    const FindProject = await Project.find({ isCompleted: req.query.status });
+    const FindProject = await Project.find({ isCompleted: req.query.status })
     if (!FindProject) {
       res.json({ success: false, messege: "cant find Project details " });
     }
@@ -257,12 +257,14 @@ const handleRecievedCashByProject = async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
-    const paymentRecords = project.projectPayment;
-    return res.status(200).json({paymentRecords });
+    const sortedPaymentRecords = project.projectPayment.sort((a, b) => a.date - b.date);
+
+    return res.status(200).json({ paymentRecords: sortedPaymentRecords });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 //delete received cash 

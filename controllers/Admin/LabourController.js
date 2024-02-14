@@ -198,7 +198,7 @@ const handleLabourEditing = async (req, res) => {
 
 const handleLabourDetails = async (req, res) => {
   try {
-    const allLabourData = await Labour.find();
+    const allLabourData = await Labour.find().sort({name:1});;
 
     res.json({ allLabourData });
   } catch (error) {
@@ -242,7 +242,7 @@ const handleAttendance = async (req, res) => {
         success: false,
         message: "Attendance for the selected date has already been recorded.",
       });
-      return;  // Stop execution here to avoid sending multiple responses
+      return;  
     }
 
     for (const laborerId in selectedValues) {

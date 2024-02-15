@@ -259,7 +259,13 @@ const handleRecievedCashByProject = async (req, res) => {
     }
     const sortedPaymentRecords = project.projectPayment.sort((a, b) => a.date - b.date);
 
-    return res.status(200).json({ paymentRecords: sortedPaymentRecords });
+     // Calculate total payment
+     const totalPayment = sortedPaymentRecords.reduce((total, record) => {
+      return total + record.amount;
+    }, 0);
+
+
+    return res.status(200).json({ paymentRecords: sortedPaymentRecords ,totalPayment});
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }

@@ -92,6 +92,7 @@ const {
   handleCareOfPayment,
   handleGetPayments,
   handleCareOfBalance,
+  handleDeleteCareOfPayment,
 } = require("../controllers/Admin/MaterialController");
 
 //The routes for admin authentication
@@ -185,5 +186,6 @@ adminRoute.patch("/deletereceivedcash",AdminAuth,handleDeleteReceivedCash)
 adminRoute.post("/careofpayment",AdminAuth,handleCareOfPayment)
 adminRoute.get("/paymentsbycareof",AdminAuth,handleGetPayments)
 adminRoute.get("/careofbalance",AdminAuth,handleCareOfBalance)
+adminRoute.patch("/deletecareofpayment",AdminAuth,handleDeleteCareOfPayment)
 
 module.exports = adminRoute;

@@ -371,6 +371,31 @@ for (const amount of totalAmountPurchased) {
 
 
 
+const handleDeleteCareOfPayment=async(req,res)=>{
+  try {
+    const paymentId=req.query.id
+    const careofId=req.query.careofId
+    if (!careofId || !paymentId) {
+      return res.status(400).json({ success: false, error: 'Project ID and received cash ID are required.' });
+    }
+    const careof = await Careof.findById(careofId);
+    if (!careof) {
+      return res.status(404).json({ success: false, error: 'careof not found.' });
+    }
+    const receivedCashIndex = careof.payments.findIndex(cash => cash._id.toString() === paymentId);
+    if (receivedCashIndex === -1) {
+      return res.status(404).json({ success: false, error: 'Received cash not found within the careof.' });
+    }
+    careof.payments.splice(receivedCashIndex, 1);
+    await careof.save();
+    return res.status(200).json({ success: true, message: 'Received cash deleted successfully.' });
+   
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 
 module.exports = {
   handleMaterialAdding,
@@ -386,5 +411,6 @@ module.exports = {
   handleDeleteCareOf,
   handleCareOfPayment,
   handleGetPayments,
-  handleCareOfBalance
+  handleCareOfBalance,
+  handleDeleteCareOfPayment
 };

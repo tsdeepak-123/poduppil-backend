@@ -22,7 +22,10 @@ const {
   handleSalaryControll,
   handleLabourSalaryById,
   handleLabourEditing,
-  handleDeleteLabour
+  handleDeleteLabour,
+  handleAttendanceSheet,
+  handleAdvanceHistoryOfLabour,
+  handleDeleteLabourAdvance
 } = require("../controllers/Admin/LabourController");
 const {
   handleStaffAdding,
@@ -40,6 +43,9 @@ const {
   handleStaffEditing,
   handleDeleteStaff,
   staffAttendanceEdit,
+  handleStaffAttendanceSheet,
+  handleAdvanceHistoryOfStaff,
+  handleDeleteStaffAdvance,
 } = require("../controllers/Admin/StaffController");
 const {
   handleProjectAdding,
@@ -187,5 +193,11 @@ adminRoute.post("/careofpayment",AdminAuth,handleCareOfPayment)
 adminRoute.get("/paymentsbycareof",AdminAuth,handleGetPayments)
 adminRoute.get("/careofbalance",AdminAuth,handleCareOfBalance)
 adminRoute.patch("/deletecareofpayment",AdminAuth,handleDeleteCareOfPayment)
+adminRoute.get("/attendancesheet",AdminAuth,handleAttendanceSheet)
+adminRoute.get("/staffattendancesheet",AdminAuth,handleStaffAttendanceSheet)
+adminRoute.get("/advancehistoryofstaff",AdminAuth,handleAdvanceHistoryOfStaff)
+adminRoute.get("/advancehistoryoflabour",AdminAuth,handleAdvanceHistoryOfLabour)
+adminRoute.patch("/deletestaffadvance",AdminAuth,handleDeleteStaffAdvance)
+adminRoute.patch("/deletelabouradvance",AdminAuth,handleDeleteLabourAdvance)
 
 module.exports = adminRoute;

@@ -221,6 +221,40 @@ const handleLabourById = async (req, res) => {
   }
 };
 
+
+// handle attendance sheeet
+const handleAttendanceSheet = async (req, res) => {
+  try {
+    const { date } = req.query;
+    console.log("dateeeeeeeee", date);
+
+    // Find attendance data for the selected date
+    const attendanceData = await Attendance.findOne({ date: date });
+
+    if (attendanceData) {
+      // Extract laborerIds from attendance data
+      const laborerIdsWithAttendance = attendanceData.records.map(record => record.laborerId);
+
+      // Fetch laborers who do not have attendance records for the selected date
+      const laborersWithoutAttendance = await Labour.find({
+        _id: { $nin: laborerIdsWithAttendance }
+      });
+
+      // Send the response with laborer details
+      return res.json({ attendanceData: laborersWithoutAttendance });
+    } else {
+      // If no attendance data found for the selected date, return all laborers
+      const allLaborers = await Labour.find({});
+      return res.json({ attendanceData: allLaborers });
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+
 //............................................. labour attendance adding...........................................................
 const handleAttendance = async (req, res) => {
   try {
@@ -233,37 +267,33 @@ const handleAttendance = async (req, res) => {
 
     if (!attendanceDocument) {
       res.status(500).json({ success: false, message: "Server error" });
-      return; 
-    }
-
-    // Check if attendance for the date has already been recorded
-    if (attendanceDocument.records.length > 0) {
-      res.json({
-        success: false,
-        message: "Attendance for the selected date has already been recorded.",
-      });
-      return;  
+      return;
     }
 
     for (const laborerId in selectedValues) {
       const status = selectedValues[laborerId];
-      const recordIndex = attendanceDocument.records.findIndex((record) =>
-        record.laborerId.equals(laborerId)
+      const existingRecordIndex = attendanceDocument.records.findIndex(
+        (record) => record.laborerId.toString() === laborerId
       );
 
-      if (recordIndex !== -1) {
-        attendanceDocument.records[recordIndex].status = status;
+      if (existingRecordIndex !== -1) {
+        // Update existing record
+        attendanceDocument.records[existingRecordIndex].status = status;
       } else {
+        // Add new record
         attendanceDocument.records.push({ laborerId, status });
       }
     }
 
     await attendanceDocument.save();
-    return res.status(200).json({ success: true, message: "Attendance updated successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Attendance updated successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 
 //..........................attendance list ............................................................
@@ -295,7 +325,6 @@ const handleAttendanceList = async (req, res) => {
 };
 
 // .......................................calculate salary using attendance..................................................
-
 const salarycalculationoflabour = async (req, res) => {
   try {
     const { laborId } = req.query;
@@ -319,6 +348,7 @@ const salarycalculationoflabour = async (req, res) => {
       "records.laborerId": laborId,
       date: { $gte: startDate, $lte: endDate },
     });
+
     if (!attendanceRecords) {
       return res.status(404).json({
         message:
@@ -343,15 +373,23 @@ const salarycalculationoflabour = async (req, res) => {
     const salary =
       LaborData?.salary * attendanceStatus?.present +
       (LaborData?.salary * attendanceStatus?.halfday) / 2;
+
+    // Calculate total reduced amount of advance
+    const totalAdvance = LaborData.advance.reduce((total, advance) => {
+      return total + advance.amount;
+    }, 0);
+    console.log(totalAdvance);
+
     const salaryData = {
       LabourData: LaborData,
       present: attendanceStatus?.present ?? 0,
       halfday: attendanceStatus?.halfday ?? 0,
       absent: attendanceStatus?.absent ?? 0,
-      advance: LaborData.advance,
+      totalAdvance: totalAdvance, // Send the total reduced amount of advance to frontend
       lastweek: salary,
-      balance: salary - LaborData.advance,
+      balance: salary - totalAdvance, // Adjust balance calculation accordingly
     };
+
     return res.json({ salaryData, message: "salarydata not found." });
   } catch (error) {
     res
@@ -359,6 +397,7 @@ const salarycalculationoflabour = async (req, res) => {
       .json({ message: "An error occurred during salary calculation." });
   }
 };
+
 
 //............................ salary calculation ..........................................
 
@@ -533,18 +572,51 @@ const labourAttendanceById = async (req, res) => {
 const handleLabourAdvance = async (req, res) => {
   try {
     const id = req.query.id;
-    const { advance } = req.body;
-    const LabourData = await Labour.findById({ _id: id });
-    if (!LabourData) {
-      res.json({ message: "No labour found" });
+    const { amount, date } = req.body;
+
+    // Validate request data
+    if (!id || !amount || !date) {
+      return res.status(400).json({ message: "Invalid request data" });
     }
-    const updatedAdvance = LabourData.advance + parseFloat(advance);
-    await Labour.updateOne({ _id: id }, { $set: { advance: updatedAdvance } });
+
+    // Find the Labour document by ID
+    let labourData = await Labour.findById(id);
+
+    // If no Labour document found with the provided ID, return a response
+    if (!labourData) {
+      return res.status(404).json({ message: "No labour found" });
+    }
+
+    // If the advance field is not an array, initialize it as an empty array
+    if (!Array.isArray(labourData.advance)) {
+      labourData.advance = [];
+    }
+
+    // Create a new advance object with the provided amount and date
+    const newAdvance = {
+      amount: parseFloat(amount), // Assuming amount is a string representation of a number
+      date: new Date(date) // Convert date string to a Date object
+    };
+
+    // Push the new advance object into the advance array of LabourData
+    labourData.advance.push(newAdvance);
+
+    // Save the updated Labour document
+    await labourData.save();
+
+    // Respond with a success message
     res.json({ message: "Advance updated successfully" });
   } catch (error) {
+    console.error(error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+
+
+
+
 
 //...........................  salary history of labour ...............................
 
@@ -690,6 +762,59 @@ const handleDeleteLabour = async (req, res) => {
   }
 };
 
+
+//advance of labour
+
+const handleAdvanceHistoryOfLabour = async (req, res) => {
+  try {
+    const labourId = req.query.id;
+    const labour = await Labour.findById(labourId);
+    if (!labour) {
+      return res.status(404).json({ message: "labour not found" });
+    }
+    const sortedPaymentRecords = labour.advance.sort((a, b) => a.date - b.date);
+
+     // Calculate total payment
+     const totalPayment = sortedPaymentRecords.reduce((total, record) => {
+      return total + record.amount;
+    }, 0);
+
+
+    return res.status(200).json({ paymentRecords: sortedPaymentRecords ,totalPayment});
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+//delete advance
+
+const handleDeleteLabourAdvance = async (req, res) => {
+  try {
+    const labourId = req.query.labourId;
+    const advanceCashId = req.query.id;
+    if (!labourId || !advanceCashId) {
+      return res.status(400).json({ success: false, error: 'labour ID and advance cash ID are required.' });
+    }
+    const labour = await Labour.findById(labourId);
+    if (!labour) {
+      return res.status(404).json({ success: false, error: 'labour not found.' });
+    }
+    const advanceCashIndex = labour.advance.findIndex(cash => cash._id.toString() === advanceCashId);
+    if (advanceCashIndex === -1) {
+      return res.status(404).json({ success: false, error: 'advance cash not found within the labour.' });
+    }
+    labour.advance.splice(advanceCashIndex, 1);
+    await labour.save();
+    return res.status(200).json({ success: true, message: 'advance cash deleted successfully.' });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
+
 module.exports = {
   handleLabourAdding,
   handleLabourEditing,
@@ -706,5 +831,8 @@ module.exports = {
   labourAttendanceEdit,
   handleSalaryControll,
   handleLabourSalaryById,
-  handleDeleteLabour 
+  handleDeleteLabour ,
+  handleAttendanceSheet,
+  handleAdvanceHistoryOfLabour,
+  handleDeleteLabourAdvance
 };

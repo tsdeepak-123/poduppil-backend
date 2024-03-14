@@ -12,7 +12,12 @@ name: { type: String },
   date: { type: Date },
   lastsalaryDate: { type: Date },
   IdProof: [{ type: String }],
-  advance:{ type: Number,required: true,default:0},
+  advance: [
+    {
+      amount: { type: Number, },
+      date: { type: Date,}
+    }
+  ],
   photo: { type: String },
   address:[{
     street: { type: String },

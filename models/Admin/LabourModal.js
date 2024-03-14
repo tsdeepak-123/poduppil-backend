@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const { Schema, ObjectId } = mongoose;
 
@@ -12,18 +12,24 @@ const LabourSchema = new Schema({
   lastsalaryDate: { type: Date },
   IdProof: [{ type: String }],
   photo: { type: String },
-  advance:{ type: Number,default:0},
-  address:[{
-    street: { type: String },
-    post: { type: String },
-    town: { type: String },
-    district: { type: String },
-    state: { type: String },
-    pincode: { type: Number },
-}]
+  advance: [
+    {
+      amount: { type: Number, },
+      date: { type: Date,}
+    }
+  ],
+  address: [
+    {
+      street: { type: String },
+      post: { type: String },
+      town: { type: String },
+      district: { type: String },
+      state: { type: String },
+      pincode: { type: Number },
+    },
+  ],
 });
 
-const Labour =new mongoose.model('Labour', LabourSchema);
+const Labour = new mongoose.model("Labour", LabourSchema);
 
-module.exports=Labour
-
+module.exports = Labour;

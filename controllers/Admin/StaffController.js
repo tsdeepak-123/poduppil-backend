@@ -227,59 +227,80 @@ const handleStaffById = async (req, res) => {
   }
 };
 
+//handle staff attendance sheet
+
+const handleStaffAttendanceSheet = async (req, res) => {
+  try {
+    const { date } = req.query;
+    console.log("dateeeeeeeee", date);
+
+    // Find attendance data for the selected date
+    const attendanceData = await Staffattendance.findOne({ date: date });
+
+    if (attendanceData) {
+      // Extract staffIds from attendance data
+      const staffIdsWithAttendance = attendanceData.records.map(record => record.StaffId);
+
+      // Fetch staffs who do not have attendance records for the selected date
+      const staffsWithoutAttendance = await Staff.find({
+        _id: { $nin: staffIdsWithAttendance }
+      });
+      // Send the response with staff details
+      return res.json({ attendanceData: staffsWithoutAttendance });
+    } else {
+      // If no attendance data found for the selected date, return all staffs
+      const allstaffs = await Staff.find({});
+      return res.json({ attendanceData: allstaffs });
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+
 //  ...............................................staff attendance..............................................
 
 const handleAttendanceofStaff = async (req, res) => {
   try {
     const { selectedValues, date } = req.body;
-
-    let attendanceDocument = await Staffattendance.findOne({
-      date: date,
-    });
+    let attendanceDocument = await Staffattendance.findOne({ date: date });
 
     if (!attendanceDocument) {
-      attendanceDocument = new Staffattendance({
-        date: date,
-        records: [],
-      });
+      attendanceDocument = new Staffattendance({ date: date, records: [] });
     }
 
-    // Check if attendanceDocument exists before sending a response
     if (!attendanceDocument) {
       res.status(500).json({ success: false, message: "Server error" });
-      return; 
-    }
-
-    // Check if attendance for the date has already been recorded
-    if (attendanceDocument.records.length > 0) {
-      res.json({
-        success: false,
-        message: "Attendance for the selected date has already been recorded.",
-      });
-      return;  // Stop execution here to avoid sending multiple responses
+      return;
     }
 
     for (const StaffId in selectedValues) {
       const status = selectedValues[StaffId];
-
-      const recordIndex = attendanceDocument.records.findIndex(
-        (record) => record.StaffId && record.StaffId.equals(StaffId)
+      const existingRecordIndex = attendanceDocument.records.findIndex(
+        (record) => record.StaffId.toString() === StaffId
       );
 
-      if (recordIndex !== -1) {
-        attendanceDocument.records[recordIndex].status = status;
+      if (existingRecordIndex !== -1) {
+        // Update existing record
+        attendanceDocument.records[existingRecordIndex].status = status;
       } else {
+        // Add new record
         attendanceDocument.records.push({ StaffId, status });
       }
     }
 
     await attendanceDocument.save();
-
-    res.status(200).json({ success: true, message: "Attendance updated successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Attendance updated successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
 
 //..........................attendance list ............................................................
 
@@ -361,14 +382,20 @@ const salarycalculationofStaff = async (req, res) => {
       StaffData?.salary * attendanceStatus?.present +
       (StaffData?.salary * attendanceStatus?.halfday) / 2;
 
+        // Calculate total reduced amount of advance
+    const totalAdvance = StaffData.advance.reduce((total, advance) => {
+      return total + advance.amount;
+    }, 0);
+    console.log(totalAdvance);
+
     const salaryData = {
       StaffData: StaffData,
       present: attendanceStatus?.present ?? 0,
       halfday: attendanceStatus?.halfday ?? 0,
       absent: attendanceStatus?.absent ?? 0,
-      advance: StaffData.advance,
+      totalAdvance: totalAdvance,
       lastweek: salary,
-      balance: salary - StaffData.advance,
+      balance: salary - totalAdvance,
     };
     return res.json({ salaryData, message: "salarydata not found." });
   } catch (error) {
@@ -515,18 +542,46 @@ const salarycalculationforStaff = async (req, res) => {
 const handleStaffAdvance = async (req, res) => {
   try {
     const id = req.query.id;
-    const { advance } = req.body;
-    const staffData = await Staff.findById({ _id: id });
-    if (!staffData) {
-      res.json({ message: "No staff found" });
+    const { amount, date } = req.body;
+
+    // Validate request data
+    if (!id || !amount || !date) {
+      return res.status(400).json({ message: "Invalid request data" });
     }
-    const updatedAdvance = staffData.advance + parseFloat(advance);
-    await Staff.updateOne({ _id: id }, { $set: { advance: updatedAdvance } });
+
+    // Find the Staff document by ID
+    let staffData = await Staff.findById(id);
+
+    // If no Staff document found with the provided ID, return a response
+    if (!staffData) {
+      return res.status(404).json({ message: "No Staff found" });
+    }
+
+    // If the advance field is not an array, initialize it as an empty array
+    if (!Array.isArray(staffData.advance)) {
+      staffData.advance = [];
+    }
+
+    // Create a new advance object with the provided amount and date
+    const newAdvance = {
+      amount: parseFloat(amount), // Assuming amount is a string representation of a number
+      date: new Date(date) // Convert date string to a Date object
+    };
+
+    // Push the new advance object into the advance array of staffData
+    staffData.advance.push(newAdvance);
+
+    // Save the updated Staff document
+    await staffData.save();
+
+    // Respond with a success message
     res.json({ message: "Advance updated successfully" });
   } catch (error) {
+    console.error(error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 //..................... staff attendance edit ......................................................
 
@@ -702,6 +757,56 @@ const handleDeleteStaff = async (req, res) => {
 
 
 
+//advance by staff
+
+
+const handleAdvanceHistoryOfStaff = async (req, res) => {
+  try {
+    const staffId = req.query.id;
+    const staff = await Staff.findById(staffId);
+    if (!staff) {
+      return res.status(404).json({ message: "staff not found" });
+    }
+    const sortedPaymentRecords = staff.advance.sort((a, b) => a.date - b.date);
+
+     // Calculate total payment
+     const totalPayment = sortedPaymentRecords.reduce((total, record) => {
+      return total + record.amount;
+    }, 0);
+
+
+    return res.status(200).json({ paymentRecords: sortedPaymentRecords ,totalPayment});
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//delete advance
+
+const handleDeleteStaffAdvance = async (req, res) => {
+  try {
+    const staffId = req.query.staffId;
+    const advanceCashId = req.query.id;
+    if (!staffId || !advanceCashId) {
+      return res.status(400).json({ success: false, error: 'staff ID and advance cash ID are required.' });
+    }
+    const staff = await Staff.findById(staffId);
+    if (!staff) {
+      return res.status(404).json({ success: false, error: 'staff not found.' });
+    }
+    const advanceCashIndex = staff.advance.findIndex(cash => cash._id.toString() === advanceCashId);
+    if (advanceCashIndex === -1) {
+      return res.status(404).json({ success: false, error: 'advance cash not found within the staff.' });
+    }
+    staff.advance.splice(advanceCashIndex, 1);
+    await staff.save();
+    return res.status(200).json({ success: true, message: 'advance cash deleted successfully.' });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+
 module.exports = {
   handleStaffAdding,
   handleStaffDetails,
@@ -717,5 +822,8 @@ module.exports = {
   handleStaffSalaryControll,
   handleStaffSalaryById,
   handleStaffEditing,
-  handleDeleteStaff
+  handleDeleteStaff,
+  handleStaffAttendanceSheet,
+  handleAdvanceHistoryOfStaff,
+  handleDeleteStaffAdvance
 };

@@ -100,6 +100,7 @@ const {
   handleCareOfBalance,
   handleDeleteCareOfPayment,
 } = require("../controllers/Admin/MaterialController");
+const { handleAddOwnerExpense, handleFindOwnerEpense, handleDeleteOwnerExpense, handleFindOwnerExpense } = require("../controllers/Admin/OwnerController");
 
 //The routes for admin authentication
 
@@ -199,5 +200,8 @@ adminRoute.get("/advancehistoryofstaff",AdminAuth,handleAdvanceHistoryOfStaff)
 adminRoute.get("/advancehistoryoflabour",AdminAuth,handleAdvanceHistoryOfLabour)
 adminRoute.patch("/deletestaffadvance",AdminAuth,handleDeleteStaffAdvance)
 adminRoute.patch("/deletelabouradvance",AdminAuth,handleDeleteLabourAdvance)
+adminRoute.post('/ownerexpense',handleAddOwnerExpense)
+adminRoute.get('/getownerexpense',handleFindOwnerExpense)
+adminRoute.patch('/deleteownerexpense',handleDeleteOwnerExpense)
 
 module.exports = adminRoute;

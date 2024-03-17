@@ -99,6 +99,7 @@ const {
   handleGetPayments,
   handleCareOfBalance,
   handleDeleteCareOfPayment,
+  handleMaterialListByCareOf,
 } = require("../controllers/Admin/MaterialController");
 const { handleAddOwnerExpense, handleFindOwnerEpense, handleDeleteOwnerExpense, handleFindOwnerExpense } = require("../controllers/Admin/OwnerController");
 
@@ -179,6 +180,7 @@ adminRoute.get("/recievedcashbyproject",AdminAuth,handleRecievedCashByProject);
 adminRoute.get("/getlabourcountbyid",AdminAuth,handleLabourCountById);
 adminRoute.get("/getcontractsbyid",AdminAuth,handleContractByProjectId);
 adminRoute.get("/purchasebycareof",AdminAuth,handlePurchaseByCareOf);
+adminRoute.get("/materiallistbycareof",AdminAuth,handleMaterialListByCareOf);
 // adminRoute.post("/editphoto",handleStaffPhotoEdit);
 adminRoute.patch("/deletecontract",AdminAuth,handleDeleteContract)
 adminRoute.patch("/deletebill",AdminAuth,handleDeleteBill)

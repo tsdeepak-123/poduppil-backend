@@ -16,8 +16,13 @@ const MaterialSchema = new Schema({
     type: Date,
     required: true,
   },
+  // careof: {
+  //   type: mongoose.Schema.Types.ObjectId, 
+  //   ref: "Careof",
+  //   required: true,
+  // },
   careof: {
-    type: String,
+    type:String
   },
   Material: [
     {

@@ -198,13 +198,27 @@ const handleLabourEditing = async (req, res) => {
 
 const handleLabourDetails = async (req, res) => {
   try {
-    const allLabourData = await Labour.find().sort({name:1});;
+    const { page = 1, searchTerm = "" } = req.query;
+    const limit = 10; // Number of items per page
+    const skip = (page - 1) * limit;
 
-    res.json({ allLabourData });
+    const query = {
+      name: { $regex: searchTerm, $options: "i" } // Case-insensitive search by name
+    };
+
+    const allLabourData = await Labour.find(query)
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit)
+
+    const totalCount = await Labour.countDocuments(query);
+
+    res.json({ allLabourData, totalCount });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // ......................Labour single view ......................................
 
@@ -226,7 +240,7 @@ const handleLabourById = async (req, res) => {
 const handleAttendanceSheet = async (req, res) => {
   try {
     const { date } = req.query;
-    console.log("dateeeeeeeee", date);
+
 
     // Find attendance data for the selected date
     const attendanceData = await Attendance.findOne({ date: date });

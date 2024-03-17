@@ -99,13 +99,28 @@ const handleProjectEditing = async (req, res) => {
 
 //   ................................... listing all projects details..................................
 
+// Modify your existing API endpoint to handle pagination and search
 const ProjectList = async (req, res) => {
   try {
-    const FindProject = await Project.find({ isCompleted: req.query.status })
+    
+    const { page = 1, limit = 10, searchTerm = "" } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const query = {
+      isCompleted: req.query.status,
+     name: { $regex: searchTerm, $options: "i" }
+    };
+
+    const FindProject = await Project.find(query)
+      .skip(skip)
+      .limit(limit);
+      
+    const totalCount = await Project.countDocuments(query);
+
     if (!FindProject) {
-      res.json({ success: false, messege: "cant find Project details " });
+      return res.json({ success: false, message: "Can't find Project details" });
     }
-    res.status(200).json({ FindProject, success: true });
+    res.status(200).json({ FindProject, totalCount, success: true });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

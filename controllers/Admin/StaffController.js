@@ -204,9 +204,23 @@ const handleStaffEditing = async (req, res) => {
 
 const handleStaffDetails = async (req, res) => {
   try {
-    const allStaffData = await Staff.find().sort({name:1});;
+    const { page = 1, searchTerm = "" } = req.query;
+    const limit = 10; // Number of items per page
+    const skip = (page - 1) * limit;
 
-    res.json({ allStaffData });
+    const query = {
+      name: { $regex: searchTerm, $options: "i" } 
+    };
+
+    const allStaffData = await Staff.find(query)
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit)
+
+    const totalCount = await Staff.countDocuments(query);
+    console.log(allStaffData);
+
+    res.json({ allStaffData, totalCount });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

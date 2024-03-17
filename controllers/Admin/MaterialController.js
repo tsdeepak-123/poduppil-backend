@@ -34,10 +34,12 @@ const handleMaterialList = async (req, res) => {
 };
 
 //here purchase the materials
-
 const handleMaterialPurchase = async (req, res) => {
   try {
     const { materials, projectname, date, careof } = req.body;
+    console.log();
+
+    // Find the project
     const findProject = await Project.findOne({ name: projectname });
     if (!findProject) {
       return res.json({
@@ -46,33 +48,56 @@ const handleMaterialPurchase = async (req, res) => {
       });
     }
 
+    // Find the Careof document by its name
+    const findCareof = await Careof.findOne({ name: careof });
+    if (!findCareof) {
+      return res.json({
+        success: false,
+        message: "Failed to find careof",
+      });
+    }
+
+    // Calculate total amount
     const totalAmount = materials.reduce((acc, cur) => {
       return (acc += cur.total);
     }, 0);
 
+    // Create a new Purchase with the reference to the Careof
     const newMaterial = new Purchase({
       project: findProject._id,
       projectname: findProject.name,
       TotalAmount: totalAmount,
       Material: materials,
       date: date,
-      careof: careof,
+      // careof: findCareof._id, 
+      careof:careof
     });
 
     await newMaterial.save();
 
-    res.status(200).json({ sucess: true, messege: "Purchase bill added" });
+    res.status(200).json({ success: true, message: "Purchase bill added" });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
+
 //.......................PurchaseData   by id ...........................
 
 const handlePurchaseById = async (req, res) => {
   try {
+    const { page = 1, limit = 10 } = req.query; // Set default values for page and limit
     const projectid = req.query.projectid;
-    const PurchaseData = await Purchase.find({ project: projectid }).sort({ date: 1 });
+    const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
+    const [PurchaseData, totalCount] = await Promise.all([
+      Purchase.find({ project: projectid })
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit),
+      Purchase.countDocuments({ project: projectid }) // Get total count of documents
+    ]);
+
     if (!PurchaseData || PurchaseData.length === 0) {
       return res.json({ success: false, message: "No data found" });
     }
@@ -81,11 +106,13 @@ const handlePurchaseById = async (req, res) => {
       success: true,
       message: "PurchaseData found successfully",
       PurchaseData,
+      totalCount
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 //............................handlePurchaseByDate ...........................
 
@@ -153,39 +180,63 @@ const handleMaterialTotal = async (req, res) => {
 
 const handlePurchaseByCareOf = async (req, res) => {
   try {
+    // Fetch all PurchaseList with TotalAmount
     const PurchaseList = await Purchase.aggregate([
       {
         $unwind: "$Material",
       },
       {
-        $sort: { date: 1 },
+        $match: { "Material._id": { $exists: true, $ne: null } } // Filter out null or undefined _id values
       },
-
       {
         $group: {
           _id: "$Material.careof",
-          project: { $first: "$project" },
           TotalAmount: { $sum: "$Material.total" },
-          materialList: {
-            $push: {
-              name: "$Material.name",
-              careof: "$Material.careof",
-              quantity: "$Material.quantity",
-              total: "$Material.total",
-              baseRate: "$Material.baseRate",
-              date: "$date",
-              projectname: "$projectname",
-            },
-          },
         },
-      },
+      }
     ]);
+
     return res.status(200).json({ PurchaseList });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+
+
+const handleMaterialListByCareOf = async (req, res) => {
+  try {
+    const { careOf, page, search } = req.query; 
+    const limit = 10;
+    const match = search ? { 
+      $or: [ 
+        { "Material.name": { $regex: new RegExp(search, "i") } }, 
+        { projectname: { $regex: new RegExp(search, "i") } }
+      ] 
+    } : {};
+
+    const totalCount = await Purchase.countDocuments({ "Material.careof": careOf, ...match }); 
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const materialList = await Purchase.find({ "Material.careof": careOf, ...match }) 
+      .select("projectname date Material")
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ date: -1 });
+
+    console.log(materialList);
+
+    return res.status(200).json({ materialList, totalPages });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 //handle CareOf adding here
 const handleCareOfAdding = async (req, res) => {
@@ -412,5 +463,6 @@ module.exports = {
   handleCareOfPayment,
   handleGetPayments,
   handleCareOfBalance,
-  handleDeleteCareOfPayment
+  handleDeleteCareOfPayment,
+  handleMaterialListByCareOf
 };

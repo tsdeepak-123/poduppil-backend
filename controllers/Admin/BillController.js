@@ -44,7 +44,8 @@ const handleBillAdding = async (req, res) => {
         photoUrl = photoUpload.secure_url;
       }
 
-      const isPaid = pending === 0 ? true : false;
+      const pendingAmount = parseInt(pending); // Parse pending as an integer
+      const isPaid = pendingAmount === 0 ? true : false;
       const newBill = new Bill({
         name,
         date,

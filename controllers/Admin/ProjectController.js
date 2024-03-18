@@ -99,6 +99,19 @@ const handleProjectEditing = async (req, res) => {
 
 //   ................................... listing all projects details..................................
 
+const handleAllProjects=async(req,res)=>{
+  try {
+    const FindProject = await Project.find({isCompleted:req.query.status})
+    if(!FindProject){
+      res.json({success:false, message:"No projects sound"})
+    }
+    res.json({success:true,FindProject})
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
 // Modify your existing API endpoint to handle pagination and search
 const ProjectList = async (req, res) => {
   try {
@@ -347,5 +360,6 @@ module.exports = {
   handleRecievedCash,
   handleRecievedCashByProject,
   handleDeleteProject ,
-  handleDeleteReceivedCash
+  handleDeleteReceivedCash,
+  handleAllProjects
 };

@@ -58,7 +58,8 @@ const {
   handleRecievedCash,
   handleRecievedCashByProject,
   handleDeleteProject,
-  handleDeleteReceivedCash
+  handleDeleteReceivedCash,
+  handleAllProjects
 } = require("../controllers/Admin/ProjectController");
 const {
   handleAddContract,
@@ -138,6 +139,7 @@ adminRoute.post("/AddContract", AdminAuth, handleAddContract);
 adminRoute.get("/ContractList", AdminAuth, ContractList);
 adminRoute.get("/ContractById", AdminAuth, ContractListById);
 adminRoute.get("/projectList", AdminAuth, ProjectList);
+adminRoute.get("/allprojects",handleAllProjects );
 adminRoute.get("/projectById", AdminAuth, ProjectListById);
 adminRoute.get("/labourattendanceById", AdminAuth, labourAttendanceById);
 adminRoute.get("/staffattendanceById", AdminAuth, StaffAttendanceById);

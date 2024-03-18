@@ -37,7 +37,7 @@ const handleMaterialList = async (req, res) => {
 const handleMaterialPurchase = async (req, res) => {
   try {
     const { materials, projectname, date, careof } = req.body;
-    console.log();
+
 
     // Find the project
     const findProject = await Project.findOne({ name: projectname });
@@ -48,20 +48,10 @@ const handleMaterialPurchase = async (req, res) => {
       });
     }
 
-    // Find the Careof document by its name
-    const findCareof = await Careof.findOne({ name: careof });
-    if (!findCareof) {
-      return res.json({
-        success: false,
-        message: "Failed to find careof",
-      });
-    }
-
     // Calculate total amount
     const totalAmount = materials.reduce((acc, cur) => {
       return (acc += cur.total);
     }, 0);
-
     // Create a new Purchase with the reference to the Careof
     const newMaterial = new Purchase({
       project: findProject._id,

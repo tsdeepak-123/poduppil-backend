@@ -283,7 +283,6 @@ const handleDeleteCareOf = async (req, res) => {
 
 const handleDeletePurchaseBill = async (req, res) => {
   try {
-    console.log(req.query.id);
     const purchaseId = req.query.id;
     if (!purchaseId) {
       return res
@@ -432,7 +431,16 @@ const handleDeleteCareOfPayment=async(req,res)=>{
     return res.status(200).json({ success: true, message: 'Received cash deleted successfully.' });
    
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+const handleRecentPurchase = async (req, res) => {
+  try {
+    const recentPurchases = await Purchase.find().sort({ date: -1 }).limit(20);
+    res.status(200).json(recentPurchases);
+  } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -454,5 +462,6 @@ module.exports = {
   handleGetPayments,
   handleCareOfBalance,
   handleDeleteCareOfPayment,
-  handleMaterialListByCareOf
+  handleMaterialListByCareOf,
+  handleRecentPurchase
 };

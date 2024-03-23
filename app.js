@@ -15,18 +15,18 @@ app.use(express.json())
 
 
 app.use(cors({
-  origin: ["https://www.poduppilconstructions.com"],
+  origin: [process.env.FrontEnd_Link],
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// app.use(cors({
-//   origin: ["http://localhost:3000"],
-//   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-//   credentials: true,
-//   // allowedHeaders: ['Content-Type', 'Authorization'],
-// }));
+app.use(cors({
+  origin: ["http://localhost:3000"],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  credentials: true,
+  // allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 
 

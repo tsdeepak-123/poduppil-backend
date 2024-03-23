@@ -15,11 +15,11 @@ app.use(express.json())
 
 
 app.use(cors({
-  origin: ["https://www.poduppilconstructions.com"],
+  origin: ["https://main.d1cqvpag7aboy8.amplifyapp.com"],
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+}))
 
 // app.use(cors({
 //   origin: ["http://localhost:3000"],

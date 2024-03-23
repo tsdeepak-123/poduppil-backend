@@ -21,12 +21,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(cors({
-  origin: ["http://localhost:3000"],
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  credentials: true,
-  // allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// app.use(cors({
+//   origin: ["http://localhost:3000"],
+//   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+//   credentials: true,
+//   // allowedHeaders: ['Content-Type', 'Authorization'],
+// }));
 
 
 

@@ -36,7 +36,9 @@ const handleMaterialList = async (req, res) => {
 //here purchase the materials
 const handleMaterialPurchase = async (req, res) => {
   try {
-    const { materials, projectname, date, careof } = req.body;
+    const { materials, projectname, date} = req.body;
+
+    console.log("materialsssssssssssssssss", materials, projectname, date);
 
 
     // Find the project
@@ -48,25 +50,30 @@ const handleMaterialPurchase = async (req, res) => {
       });
     }
 
+    console.log("project",findProject);
+
     // Calculate total amount
     const totalAmount = materials.reduce((acc, cur) => {
       return (acc += cur.total);
     }, 0);
+
+    console.log("totalllll",totalAmount);
     // Create a new Purchase with the reference to the Careof
     const newMaterial = new Purchase({
       project: findProject._id,
       projectname: findProject.name,
       TotalAmount: totalAmount,
       Material: materials,
-      date: date,
-      // careof: findCareof._id, 
-      careof:careof
+      date: date
     });
+    console.log("newwwww",newMaterial);
 
     await newMaterial.save();
 
+
     res.status(200).json({ success: true, message: "Purchase bill added" });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -438,12 +445,15 @@ const handleDeleteCareOfPayment=async(req,res)=>{
 
 const handleRecentPurchase = async (req, res) => {
   try {
-    const recentPurchases = await Purchase.find().sort({ date: -1 }).limit(20);
+
+    const recentPurchases = await Purchase.find().sort({ createdAt: -1 }).limit(20);
+    
     res.status(200).json(recentPurchases);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
 
 
 module.exports = {

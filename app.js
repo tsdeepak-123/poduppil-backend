@@ -15,7 +15,7 @@ app.use(express.json())
 
 
 app.use(cors({
-  origin: ["https://main.d1cqvpag7aboy8.amplifyapp.com"],
+  origin: ["https://www.poduppilconstructions.com"],
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],

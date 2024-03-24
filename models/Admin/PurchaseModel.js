@@ -16,14 +16,6 @@ const MaterialSchema = new Schema({
     type: Date,
     required: true,
   },
-  // careof: {
-  //   type: mongoose.Schema.Types.ObjectId, 
-  //   ref: "Careof",
-  //   required: true,
-  // },
-  careof: {
-    type:String
-  },
   Material: [
     {
       name: {
@@ -52,7 +44,7 @@ const MaterialSchema = new Schema({
     type: Number,
     required: true,
   },
-});
+},{ timestamps: true });
 
 const Purchase = new mongoose.model("Purchase", MaterialSchema);
 

@@ -34,7 +34,7 @@ app.use('/',userRoute)
 app.use('/admin',adminRoute)
 
 
-app.listen(5001,()=>{
+app.listen(5003,()=>{
     console.log("server connected");
 })
 

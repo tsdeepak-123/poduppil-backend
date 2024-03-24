@@ -102,6 +102,7 @@ const {
   handleDeleteCareOfPayment,
   handleMaterialListByCareOf,
   handleRecentPurchase,
+  handleDeleteMaterial,
 } = require("../controllers/Admin/MaterialController");
 const { handleAddOwnerExpense, handleFindOwnerEpense, handleDeleteOwnerExpense, handleFindOwnerExpense } = require("../controllers/Admin/OwnerController");
 
@@ -210,5 +211,7 @@ adminRoute.get('/getownerexpense',AdminAuth,handleFindOwnerExpense)
 adminRoute.patch('/deleteownerexpense',AdminAuth,handleDeleteOwnerExpense)
 adminRoute.get('/recentpurchase',AdminAuth,handleRecentPurchase)
 adminRoute.patch('/deleterecentpurchase',AdminAuth,handleDeleteOwnerExpense)
+adminRoute.patch('/deletematerial',AdminAuth,handleDeleteMaterial)
+
 
 module.exports = adminRoute;

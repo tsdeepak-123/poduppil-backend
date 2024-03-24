@@ -44,7 +44,7 @@ const MaterialSchema = new Schema({
     type: Number,
     required: true,
   },
-},{ timestamps: true });
+});
 
 const Purchase = new mongoose.model("Purchase", MaterialSchema);
 
